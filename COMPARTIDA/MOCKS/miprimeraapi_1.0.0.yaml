@@ -1,0 +1,98 @@
+---
+swagger: "2.0"
+info:
+  x-ibm-name: "miprimeraapi"
+  title: "MiPrimeraAPI"
+  version: "1.0.0"
+  contact:
+    name: "Jose"
+    email: "jjdelagala@tcpsi.es"
+schemes:
+- "https"
+host: "$(catalog.host)"
+basePath: "/miprimeraapi"
+consumes:
+- "application/json"
+produces:
+- "application/json"
+securityDefinitions:
+  clientIdHeader:
+    type: "apiKey"
+    in: "header"
+    name: "X-IBM-Client-Id"
+security:
+- clientIdHeader: []
+x-ibm-configuration:
+  testable: true
+  enforced: true
+  cors:
+    enabled: true
+  assembly:
+    execute:
+    - set-variable:
+        title: "set-variable"
+        actions:
+        - set: "message.body.saludo"
+          value: "Hola $(request.parameters.nombre)"
+        version: "1.0.0"
+    catch:
+    - errors: []
+      execute:
+      - map:
+          title: "map"
+          inputs:
+            nombre:
+              schema:
+                type: "string"
+              variable: "request.parameters.nombre"
+          outputs:
+            saludo:
+              schema:
+                $ref: "#/definitions/saludo"
+              variable: "message.body.saludo"
+              content: "application/json"
+          actions:
+          - set: "saludo"
+            from: "nombre"
+            value: "\"Hola \" + $(nombre) "
+          version: "1.0.0"
+  phase: "realized"
+  properties:
+    target-url:
+      value: ""
+      description: "target-url"
+      encoded: false
+  catalogs: {}
+paths:
+  /saludo:
+    get:
+      responses:
+        200:
+          description: "200 OK"
+          schema:
+            $ref: "#/definitions/saludo"
+      tags:
+      - "MiPrimerAPI"
+      summary: "Obtenemos un saludo"
+      operationId: "get_saludo"
+      description: "Obtenemos un saludo"
+    parameters:
+    - name: "nombre"
+      type: "string"
+      required: false
+      in: "query"
+tags: []
+parameters:
+  Accept-Language:
+    name: "Accept-Language"
+    type: "string"
+    required: true
+    in: "header"
+    description: "Lenguaje de la peticion"
+definitions:
+  saludo:
+    properties:
+      propiedad-nueva-1:
+        type: "string"
+    additionalProperties: false
+    description: "Ejemplo"

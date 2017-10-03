@@ -1,0 +1,550 @@
+---
+swagger: "2.0"
+info:
+  x-ibm-name: "formacionapisoap"
+  title: "FormacionAPI_SOAP"
+  version: "1.0.0"
+  description: "Gets building data, including directions"
+  contact:
+    name: "Formación API"
+    email: "formacion.api@tcpsi.es"
+schemes:
+- "https"
+host: "$(catalog.host)"
+basePath: "/"
+consumes:
+- "application/json"
+produces:
+- "application/json"
+securityDefinitions:
+  clientIdHeader:
+    type: "apiKey"
+    in: "header"
+    name: "X-IBM-Client-Id"
+security:
+- clientIdHeader: []
+x-ibm-configuration:
+  testable: true
+  enforced: true
+  cors:
+    enabled: true
+  assembly:
+    execute:
+    - map:
+        title: "getBuildingList: input"
+        inputs:
+          country:
+            schema:
+              type: "string"
+              title: "country"
+            variable: "request.parameters.country"
+          building:
+            schema:
+              type: "string"
+              title: "building"
+            variable: "request.parameters.building"
+        outputs:
+          body:
+            schema:
+              $ref: "#/x-ibm-configuration/targets/ReservesRm/definitions/getBuildingListInput"
+            variable: "message.body"
+            content: "application/xml"
+          content-type:
+            schema:
+              type: "string"
+              title: "content-type"
+            variable: "message.headers.content-type"
+          SOAPAction:
+            schema:
+              type: "string"
+              title: "SOAPAction"
+            variable: "message.headers.SOAPAction"
+        actions:
+        - set: "content-type"
+          default: "text/xml"
+        - set: "SOAPAction"
+        - set: "body.Envelope.Body.getBuildingList.country_id"
+          from: "country"
+        - set: "body.Envelope.Body.getBuildingList.bl_id"
+          from: "building"
+        - set: "body.Envelope.Body.getBuildingList.user_id"
+          default: "admin"
+    - invoke:
+        title: "getBuildingList: invoke"
+        target-url: "$(target-url)"
+        timeout: 60
+        verb: "POST"
+        cache-response: "protocol"
+        cache-ttl: 900
+        output: "getBuildingListOut"
+    - map:
+        title: "getBuildingList: output"
+        inputs:
+          input:
+            schema:
+              $ref: "#/x-ibm-configuration/targets/ReservesRm/definitions/getBuildingListOutput"
+            variable: "getBuildingListOut.body"
+            content: "application/xml"
+        outputs:
+          buildings:
+            schema:
+              $ref: "#/definitions/buildings"
+            variable: "message.body.buildings"
+            content: "application/json"
+        actions:
+        - create: "buildings"
+          from: "input.Envelope.Body.getBuildingListResponse.return.building_list.building"
+          foreach: "input.Envelope.Body.getBuildingListResponse.return.building_list.building"
+          actions:
+          - set: "buildingId"
+            from: "bl_id"
+          - set: "name"
+            from: "bl_name"
+          - set: "address.country"
+            from: "country_name"
+          - set: "address.region"
+            from: "region_name"
+          - set: "address.state"
+            from: "state_name"
+          - set: "address.location"
+            from: "city_name"
+          - set: "address.site"
+            from: "site_name"
+          - set: "address.street1"
+            from: "address1"
+          - set: "address.street2"
+            from: "address2"
+          - set: "address.postalCode"
+            from: "zip"
+          - set: "address.latitude"
+            from: "lon"
+          - set: "address.longitude"
+            from: "lat"
+    catch: []
+  phase: "realized"
+  properties:
+    target-url:
+      value: "http://180.106.39.99:8089/getBuildingList"
+      description: "Endpoint del servicio de mediación BW que realiza la petición\
+        \ al servicio backend Archibus"
+      encoded: false
+  catalogs:
+    DEV:
+      properties:
+        target-url: "http://192.168.99.1:8089/getBuildingList"
+  targets:
+    ReservesRm:
+      swagger: "2.0"
+      info:
+        title: "ReservesRm"
+        description: ""
+        x-ibm-name: "reservesrm"
+        version: "1.0.0"
+      schemes:
+      - "https"
+      basePath: "/ReservesRm"
+      produces:
+      - "application/xml"
+      consumes:
+      - "text/xml"
+      securityDefinitions:
+        clientID:
+          type: "apiKey"
+          name: "X-IBM-Client-Id"
+          in: "header"
+          description: ""
+      security:
+      - clientID: []
+      x-ibm-configuration:
+        type: "wsdl"
+        wsdl-definition:
+          wsdl: "58b589e1e4b0bdf94f5eceb5"
+          service: "ReservesRm"
+          port: "ReservesRmRequestImplPort"
+          soap-version: "1.1"
+        assembly:
+          execute:
+          - proxy:
+              title: "proxy"
+              target-url: "http://archibus.isban.dev.corp/archibus/cxf/ReservesRm"
+        gateway: "datapower-gateway"
+        enforced: true
+        testable: true
+        phase: "realized"
+        cors:
+          enabled: true
+      paths:
+        /getBuildingList:
+          post:
+            summary: "Operation getBuildingList"
+            description: ""
+            operationId: "getBuildingList"
+            parameters:
+            - in: "body"
+              name: "body"
+              required: true
+              schema:
+                $ref: "#/x-ibm-configuration/targets/ReservesRm/definitions/getBuildingListInput"
+            responses:
+              default:
+                description: ""
+                schema:
+                  $ref: "#/x-ibm-configuration/targets/ReservesRm/definitions/getBuildingListOutput"
+            x-ibm-soap:
+              soap-action: ""
+              soap-operation: "{http://reservations.webservice.eventhandler.imagar.com/}getBuildingList"
+      definitions:
+        wsSecurityHeader:
+          xml:
+            namespace: "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+            prefix: "wsse"
+          type: "object"
+          properties:
+            UsernameToken:
+              type: "object"
+              properties:
+                Username:
+                  type: "string"
+                Password:
+                  type: "string"
+        getBuildingListInput:
+          type: "object"
+          properties:
+            Envelope:
+              xml:
+                prefix: "soap-env"
+                namespace: "http://schemas.xmlsoap.org/soap/envelope/"
+              type: "object"
+              properties:
+                Header:
+                  $ref: "#/x-ibm-configuration/targets/ReservesRm/definitions/getBuildingListHeader"
+                Body:
+                  type: "object"
+                  properties:
+                    getBuildingList:
+                      $ref: "#/x-ibm-configuration/targets/ReservesRm/definitions/getBuildingList"
+          example: "\n<soap-env:Envelope xmlns:soap-env=\"http://schemas.xmlsoap.org/soap/envelope/\"\
+            >\n <soap-env:Header>\n  <wsse:wsSecurityHeader xmlns:wsse=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\"\
+            >\n   <UsernameToken>\n    <Username>string</Username>\n    <Password>string</Password>\n\
+            \   </UsernameToken>\n  </wsse:wsSecurityHeader>\n </soap-env:Header>\n\
+            \ <soap-env:Body>\n  <tns:getBuildingList xmlns:tns=\"http://reservations.webservice.eventhandler.imagar.com/\"\
+            >\n   <country_id>string</country_id>\n   <bl_id>string</bl_id>\n   <user_id>string</user_id>\n\
+            \  </tns:getBuildingList>\n </soap-env:Body>\n</soap-env:Envelope>"
+        getBuildingListOutput:
+          type: "object"
+          properties:
+            Envelope:
+              xml:
+                prefix: "soap-env"
+                namespace: "http://schemas.xmlsoap.org/soap/envelope/"
+              type: "object"
+              properties:
+                Body:
+                  type: "object"
+                  properties:
+                    getBuildingListResponse:
+                      $ref: "#/x-ibm-configuration/targets/ReservesRm/definitions/getBuildingListResponse"
+          example: "\n<soap-env:Envelope xmlns:soap-env=\"http://schemas.xmlsoap.org/soap/envelope/\"\
+            >\n <soap-env:Body>\n  <tns:getBuildingListResponse xmlns:tns=\"http://reservations.webservice.eventhandler.imagar.com/\"\
+            >\n   <return>\n    <result>true</result>\n    <error_code>3</error_code>\n\
+            \    <building_list>\n     <building><!-- between zero and unlimited repetitions\
+            \ of this element -->\n      <bl_id>string</bl_id>\n      <bl_name>string</bl_name>\n\
+            \      <country_id>string</country_id>\n      <country_name>string</country_name>\n\
+            \      <region_id>string</region_id>\n      <region_name>string</region_name>\n\
+            \      <state_id>string</state_id>\n      <state_name>string</state_name>\n\
+            \      <city_id>string</city_id>\n      <city_name>string</city_name>\n\
+            \      <site_id>string</site_id>\n      <site_name>string</site_name>\n\
+            \      <address1>string</address1>\n      <address2>string</address2>\n\
+            \      <zip>string</zip>\n      <lon>string</lon>\n      <lat>string</lat>\n\
+            \     </building>\n    </building_list>\n   </return>\n  </tns:getBuildingListResponse>\n\
+            \ </soap-env:Body>\n</soap-env:Envelope>"
+        getBuildingListHeader:
+          type: "object"
+          properties:
+            wsSecurityHeader:
+              $ref: "#/x-ibm-configuration/targets/ReservesRm/definitions/wsSecurityHeader"
+        getBuildingList:
+          xml:
+            namespace: "http://reservations.webservice.eventhandler.imagar.com/"
+            prefix: "tns"
+          type: "object"
+          properties:
+            country_id:
+              type: "string"
+              xml:
+                namespace: ""
+            bl_id:
+              type: "string"
+              xml:
+                namespace: ""
+            user_id:
+              type: "string"
+              xml:
+                namespace: ""
+          example: "\n<tns:getBuildingList xmlns:tns=\"http://reservations.webservice.eventhandler.imagar.com/\"\
+            >\n <country_id>string</country_id>\n <bl_id>string</bl_id>\n <user_id>string</user_id>\n\
+            </tns:getBuildingList>"
+        getBuildingListResponse:
+          xml:
+            namespace: "http://reservations.webservice.eventhandler.imagar.com/"
+            prefix: "tns"
+          type: "object"
+          properties:
+            return:
+              $ref: "#/x-ibm-configuration/targets/ReservesRm/definitions/response"
+          example: "\n<tns:getBuildingListResponse xmlns:tns=\"http://reservations.webservice.eventhandler.imagar.com/\"\
+            >\n <return>\n  <result>true</result>\n  <error_code>3</error_code>\n\
+            \  <building_list>\n   <building><!-- between zero and unlimited repetitions\
+            \ of this element -->\n    <bl_id>string</bl_id>\n    <bl_name>string</bl_name>\n\
+            \    <country_id>string</country_id>\n    <country_name>string</country_name>\n\
+            \    <region_id>string</region_id>\n    <region_name>string</region_name>\n\
+            \    <state_id>string</state_id>\n    <state_name>string</state_name>\n\
+            \    <city_id>string</city_id>\n    <city_name>string</city_name>\n  \
+            \  <site_id>string</site_id>\n    <site_name>string</site_name>\n    <address1>string</address1>\n\
+            \    <address2>string</address2>\n    <zip>string</zip>\n    <lon>string</lon>\n\
+            \    <lat>string</lat>\n   </building>\n  </building_list>\n </return>\n\
+            </tns:getBuildingListResponse>"
+        response:
+          xml:
+            namespace: ""
+            prefix: ""
+          type: "object"
+          properties:
+            result:
+              type: "boolean"
+            error_code:
+              type: "integer"
+              format: "int32"
+            building_list:
+              $ref: "#/x-ibm-configuration/targets/ReservesRm/definitions/wsList"
+        wsList:
+          xml:
+            namespace: ""
+            prefix: ""
+          type: "object"
+          properties:
+            building:
+              type: "array"
+              items:
+                $ref: "#/x-ibm-configuration/targets/ReservesRm/definitions/building"
+        building:
+          xml:
+            namespace: ""
+            prefix: ""
+          type: "object"
+          properties:
+            bl_id:
+              type: "string"
+            bl_name:
+              type: "string"
+            country_id:
+              type: "string"
+            country_name:
+              type: "string"
+            region_id:
+              type: "string"
+            region_name:
+              type: "string"
+            state_id:
+              type: "string"
+            state_name:
+              type: "string"
+            city_id:
+              type: "string"
+            city_name:
+              type: "string"
+            site_id:
+              type: "string"
+            site_name:
+              type: "string"
+            address1:
+              type: "string"
+            address2:
+              type: "string"
+            zip:
+              type: "string"
+            lon:
+              type: "string"
+            lat:
+              type: "string"
+paths:
+  /buildings:
+    get:
+      responses:
+        200:
+          description: "200 OK"
+          schema:
+            $ref: "#/definitions/buildings"
+        401:
+          description: "Not Authorized"
+          schema:
+            $ref: "#/definitions/errors"
+        403:
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/errors"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/errors"
+      operationId: "get_buildings"
+      summary: "Gets a Building data list"
+      description: "This operation expects Oauth token ClientId and userId in the\
+        \ header autorization. \nIf the operation is succesfull executed, a list of\
+        \ buildings is displayed filter by country."
+      parameters:
+      - name: "country"
+        type: "string"
+        required: true
+        in: "query"
+        description: "Building country"
+      - name: "building"
+        type: "string"
+        required: false
+        in: "query"
+        description: "Building id"
+    parameters:
+    - $ref: "#/parameters/Accept-Language"
+    - $ref: "#/parameters/Authorization"
+    - $ref: "#/parameters/Global-Id"
+    - $ref: "#/parameters/Device"
+    - $ref: "#/parameters/Channel"
+definitions:
+  error:
+    properties:
+      code:
+        type: "string"
+        description: "Unique alphanumeric human readable error code"
+      message:
+        type: "string"
+        description: "Brief summary of issue reported"
+      level:
+        type: "string"
+        description: "Different issue level: info, warning, error"
+      description:
+        type: "string"
+        description: "Detailed description of the issue reported"
+    additionalProperties: false
+    description: "Exception information"
+    required:
+    - "message"
+    - "code"
+  errors:
+    description: "List of exceptions"
+    type: "array"
+    items:
+      $ref: "#/definitions/error"
+  address:
+    properties:
+      country:
+        type: "string"
+        description: "Building country"
+        example: "ESP"
+      region:
+        type: "string"
+        description: "Building region"
+        example: "Comunidad de Madrid"
+      state:
+        type: "string"
+        description: "Building state"
+        example: "Madrid"
+      location:
+        type: "string"
+        description: "Building location"
+        example: "Boadilla del Monte"
+      site:
+        type: "string"
+        description: "Building site"
+        example: "Comunidad Autonoma de Madrid"
+      street1:
+        type: "string"
+        description: "Building street line 1"
+        example: "Avda. de Cantabria, S/N"
+      street2:
+        type: "string"
+        description: "Building street line 2"
+        example: "BOADILLA DEL MONTE (MADRID)"
+      postalCode:
+        type: "string"
+        description: "Building postal code"
+        example: "28660"
+      latitude:
+        type: "number"
+        description: "Building latitude"
+        format: "float"
+        example: 40.3957876
+      longitude:
+        type: "number"
+        description: "Building longitude"
+        format: "float"
+        example: -3.8633688
+    additionalProperties: false
+    description: "Building address information"
+    required:
+    - "longitude"
+    - "latitude"
+    - "postalCode"
+    - "street1"
+    - "street2"
+    - "site"
+    - "location"
+    - "state"
+    - "region"
+    - "country"
+  building:
+    additionalProperties: false
+    description: "Building information"
+    properties:
+      buildingId:
+        type: "string"
+        description: "Building identifyer"
+        example: "1"
+      name:
+        type: "string"
+        description: "Building name"
+        example: "ALHAMBRA"
+      address:
+        $ref: "#/definitions/address"
+    required:
+    - "address"
+    - "name"
+    - "buildingId"
+  buildings:
+    description: "List of buildings"
+    type: "array"
+    items:
+      $ref: "#/definitions/building"
+tags: []
+parameters:
+  Accept-Language:
+    name: "Accept-Language"
+    type: "string"
+    required: true
+    in: "header"
+    description: "Language of the request"
+  Authorization:
+    name: "Authorization"
+    type: "string"
+    required: true
+    in: "header"
+    description: "Bearer Token. A security token with the property that any party\
+      \ in possession of the token (a \"bearer\") can use the token in any way that\
+      \ any other party in possession of it can"
+  Global-Id:
+    name: "Global-Id"
+    type: "string"
+    required: true
+    in: "header"
+    description: "E2E traceability between front and Backend"
+  Device:
+    name: "Device"
+    type: "string"
+    required: true
+    in: "header"
+    description: "Permitted Device Information"
+  Channel:
+    name: "Channel"
+    type: "string"
+    required: true
+    in: "header"
+    description: "Identifies the consumption channel"

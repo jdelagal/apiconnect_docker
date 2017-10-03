@@ -1,0 +1,89 @@
+---
+swagger: "2.0"
+info:
+  x-ibm-name: "formacionapi4"
+  title: "FormacionAPI4"
+  version: "1.0.0"
+  contact:
+    name: "Jose de la Gala"
+schemes:
+- "https"
+host: "$(catalog.host)"
+basePath: "/formacionapi4"
+consumes:
+- "application/json"
+produces:
+- "application/json"
+securityDefinitions:
+  clientIdHeader:
+    type: "apiKey"
+    in: "header"
+    name: "X-IBM-Client-Id"
+security:
+- clientIdHeader: []
+x-ibm-configuration:
+  testable: true
+  enforced: true
+  cors:
+    enabled: true
+  assembly:
+    execute:
+    - map:
+        title: "map"
+        inputs:
+          nombre:
+            schema:
+              type: "string"
+              title: "nombre"
+            variable: "request.parameters.nombre"
+        outputs:
+          saludo:
+            schema:
+              $ref: "#/definitions/saludo"
+            variable: "message.body.saludo"
+            content: "application/json"
+        actions:
+        - set: "saludo"
+          from: "nombre"
+          value: "\"Hola \" + $(nombre)"
+    catch: []
+  phase: "realized"
+  properties:
+    target-url:
+      value: "https://180.106.39.62:8089/des"
+      description: "Direccion del end point"
+      encoded: false
+  catalogs:
+    DEV:
+      properties:
+        target-url: "https://180.106.39.62:8089/des"
+paths:
+  /saludo:
+    get:
+      responses:
+        200:
+          description: "200 OK"
+          schema:
+            $ref: "#/definitions/saludo"
+      operationId: "getSaludo"
+      tags:
+      - "FormacionAPI"
+      - "GET"
+      - "saludo"
+    parameters:
+    - name: "nombre"
+      type: "string"
+      required: false
+      in: "query"
+      description: "Hola Api"
+definitions:
+  saludo:
+    type: "string"
+tags: []
+parameters:
+  Accept-Language:
+    name: "Accept-Language"
+    type: "string"
+    required: true
+    in: "header"
+    description: "Language of the request"

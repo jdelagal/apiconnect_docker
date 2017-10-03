@@ -1,0 +1,37 @@
+1- Carpeta compartida C:\COMPARTIDA en /media/windows
+2- Instalar docker ubuntu
+* sudo apt-get update
+* sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+* curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+* sudo apt-key fingerprint 0EBFCD88
+* sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+* sudo apt-get update
+* sudo apt-get install docker-ce
+* sudo docker run hello-world
+3- instalar nodejs
+* curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+* sudo apt-get install -y nodejs
+* sudo apt-get install -y build-essential
+4- instalar tookit ibm
+* npm install -g apiconnect
+5- instalar docker-compose
+* sudo curl -L https://github.com/docker/compose/releases/download/1.16.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+* sudo chmod +x /usr/local/bin/docker-compose
+* docker-compose --version
+6- instalar apiconnect
+* docker run -it --rm --env SHOW_LICENSE=1 ibmcom/apiconnect:manager-v5.0.6.0
+* 0.0.0.0 apim datapower gwadmin ibmportal microservice
+* docker stop $(docker ps -a -q)
+* docker rm $(docker ps -a -q)
+* docker-compose up -d
+* docker-compose ps
+* https://gwadmin/
+* https://apim/cmc/ ----> admin / !n0r1t5@C
+* 465  test mail
+7- configurar
+* https://apim/apim/?validate=true&authId=apimanager%2F59c7e5d2e4b032b113b6278f%2FyF2oO6kC4pN6sO2gP6bN5wM1lE6kJ6uE5gO6uV1bJ7&token=GcKkd9lOAykSACZ8FtEHeM67ZnG4sFM6MT5%2FEjG4HL&username=jjdelagala%40tcpsi.es
+* en https://apim/apim/ jjdelagala@tcpsi.es  / !n0r1t5@C
+8- Ejemplos IBM
+* 9d72ece0-7e7b-11e5-9038-55f9f9c08c06
+* 3c01c024-ddae-4df7-ad36-e74bdc51e034
+* https://apim-services.mybluemix.net/banka/v1/branches

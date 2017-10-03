@@ -1,0 +1,84 @@
+---
+swagger: "2.0"
+info:
+  x-ibm-name: "branches"
+  title: "Branches"
+  version: "1.0.0"
+schemes:
+- "https"
+host: "$(catalog.host)"
+basePath: "/branches"
+consumes:
+- "application/json"
+produces:
+- "application/json"
+securityDefinitions:
+  clientIdHeader:
+    type: "apiKey"
+    in: "header"
+    name: "X-IBM-Client-Id"
+security:
+- clientIdHeader: []
+x-ibm-configuration:
+  testable: true
+  enforced: true
+  cors:
+    enabled: true
+  assembly:
+    execute:
+    - invoke:
+        target-url: "https://apim-services.mybluemix.net/banka/v1/branches"
+        title: "Branch Invoke"
+        secure-gateway: false
+  phase: "realized"
+paths:
+  /details:
+    get:
+      responses:
+        200:
+          description: "200 OK"
+          schema:
+            $ref: "#/definitions/branch"
+      summary: "Branch details"
+      operationId: ""
+      description: "Retrieve Branches"
+definitions:
+  branch:
+    properties:
+      id:
+        type: "string"
+        description: "The id"
+        example: "12323232323"
+      type:
+        type: "string"
+        example: "atm"
+      address:
+        description: "The address of the branch"
+        $ref: "#/definitions/address"
+    additionalProperties: false
+    description: "The pincipal"
+  address:
+    properties:
+      zip_code:
+        type: "string"
+        description: "The zip code of the address"
+        example: "92122"
+      state:
+        type: "string"
+        description: "The state"
+        example: "CA"
+      city:
+        type: "string"
+        description: "The city"
+        example: "San Diego"
+      street2:
+        type: "string"
+        description: "The second"
+        example: "Suite 300"
+      street1:
+        type: "string"
+        description: "The first"
+        example: "4660 La Jolla"
+    additionalProperties: false
+    description: "The format"
+tags: []
